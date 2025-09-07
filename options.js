@@ -92,7 +92,7 @@ class DeepResearchOptions {
             pageAccess: true,
 
             // Advanced
-            apiEndpoint: '',
+            apiEndpoint: 'https://deepresearchassistant-backend.onrender.com',
             apiKey: '',
             debugMode: false
         };

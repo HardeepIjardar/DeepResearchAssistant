@@ -293,7 +293,8 @@ class DeepResearchBackground {
 
 		// Allow override of backend URL from extension settings; fallback to local dev URL
 		const { settings } = await chrome.storage.sync.get(['settings']);
-		const apiBase = (settings && settings.apiEndpoint) ? settings.apiEndpoint.replace(/\/$/, '') : 'http://127.0.0.1:3001';
+		const defaultBase = 'https://deepresearchassistant-backend.onrender.com';
+		const apiBase = (settings && settings.apiEndpoint) ? settings.apiEndpoint.replace(/\/$/, '') : defaultBase;
 		const res = await fetch(`${apiBase}/chat`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
