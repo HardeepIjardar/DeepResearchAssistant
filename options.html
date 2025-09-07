@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Research Assistant - Settings</title>
+    <link rel="stylesheet" href="options.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="options-container">
+        <!-- Header -->
+        <header class="options-header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div class="title-section">
+                        <h1>Deep Research Assistant</h1>
+                        <p>Settings & Configuration</p>
+                    </div>
+                </div>
+                <div class="version-info">
+                    <span class="version">v1.0.0</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="options-nav">
+            <button class="nav-item active" data-section="general">
+                <i class="fas fa-cog"></i>
+                <span>General</span>
+            </button>
+            <button class="nav-item" data-section="shortcuts">
+                <i class="fas fa-keyboard"></i>
+                <span>Shortcuts</span>
+            </button>
+            <button class="nav-item" data-section="appearance">
+                <i class="fas fa-palette"></i>
+                <span>Appearance</span>
+            </button>
+            <button class="nav-item" data-section="privacy">
+                <i class="fas fa-shield-alt"></i>
+                <span>Privacy</span>
+            </button>
+            <button class="nav-item" data-section="advanced">
+                <i class="fas fa-tools"></i>
+                <span>Advanced</span>
+            </button>
+        </nav>
+
+        <!-- Content -->
+        <main class="options-content">
+            <!-- General Settings -->
+            <section class="content-section active" id="general-section">
+                <div class="section-header">
+                    <h2>General Settings</h2>
+                    <p>Configure basic behavior and preferences</p>
+                </div>
+
+                <div class="settings-group">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Auto-open Widget</h3>
+                            <p>Automatically open the chat widget when you visit new pages</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="autoOpen">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Notifications</h3>
+                            <p>Show notifications for important events and updates</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="notifications">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Chat History</h3>
+                            <p>Save chat history for future reference</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="saveHistory">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Context Menu</h3>
+                            <p>Show Deep Research Assistant in right-click context menu</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="contextMenu">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Shortcuts Settings -->
+            <section class="content-section" id="shortcuts-section">
+                <div class="section-header">
+                    <h2>Keyboard Shortcuts</h2>
+                    <p>Customize keyboard shortcuts for quick access</p>
+                </div>
+
+                <div class="settings-group">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Open Widget</h3>
+                            <p>Shortcut to open the chat widget</p>
+                        </div>
+                        <div class="setting-control">
+                            <button class="shortcut-input" id="widgetShortcut">
+                                <span class="shortcut-text">Ctrl+Shift+D</span>
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Quick Research</h3>
+                            <p>Shortcut to quickly research selected text</p>
+                        </div>
+                        <div class="setting-control">
+                            <button class="shortcut-input" id="researchShortcut">
+                                <span class="shortcut-text">Ctrl+Shift+R</span>
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Capture Screenshot</h3>
+                            <p>Shortcut to capture and analyze screenshot</p>
+                        </div>
+                        <div class="setting-control">
+                            <button class="shortcut-input" id="screenshotShortcut">
+                                <span class="shortcut-text">Ctrl+Shift+S</span>
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="shortcut-help">
+                    <h3>How to customize shortcuts:</h3>
+                    <ol>
+                        <li>Click on any shortcut button above</li>
+                        <li>Press the new key combination you want to use</li>
+                        <li>The shortcut will be updated automatically</li>
+                        <li>Note: Some shortcuts may conflict with browser defaults</li>
+                    </ol>
+                </div>
+            </section>
+
+            <!-- Appearance Settings -->
+            <section class="content-section" id="appearance-section">
+                <div class="section-header">
+                    <h2>Appearance</h2>
+                    <p>Customize the look and feel of the extension</p>
+                </div>
+
+                <div class="settings-group">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Theme</h3>
+                            <p>Choose your preferred color theme</p>
+                        </div>
+                        <div class="setting-control">
+                            <select id="theme" class="select-input">
+                                <option value="light">Light Theme</option>
+                                <option value="dark">Dark Theme</option>
+                                <option value="auto">Auto (System)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Widget Position</h3>
+                            <p>Choose where the chat widget appears</p>
+                        </div>
+                        <div class="setting-control">
+                            <select id="widgetPosition" class="select-input">
+                                <option value="bottom-right">Bottom Right</option>
+                                <option value="bottom-left">Bottom Left</option>
+                                <option value="top-right">Top Right</option>
+                                <option value="top-left">Top Left</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Widget Size</h3>
+                            <p>Choose the size of the chat widget</p>
+                        </div>
+                        <div class="setting-control">
+                            <select id="widgetSize" class="select-input">
+                                <option value="small">Small (300px)</option>
+                                <option value="medium">Medium (350px)</option>
+                                <option value="large">Large (400px)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Floating Button</h3>
+                            <p>Show the floating button on web pages</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="showFloatingButton">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Privacy Settings -->
+            <section class="content-section" id="privacy-section">
+                <div class="section-header">
+                    <h2>Privacy & Data</h2>
+                    <p>Control how your data is handled and stored</p>
+                </div>
+
+                <div class="settings-group">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Data Collection</h3>
+                            <p>Allow anonymous usage data collection for improvements</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="dataCollection">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Page Content Access</h3>
+                            <p>Allow the extension to read page content for better assistance</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="pageAccess">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Clear Data</h3>
+                            <p>Clear all stored data and reset to defaults</p>
+                        </div>
+                        <div class="setting-control">
+                            <button class="danger-button" id="clearData">
+                                <i class="fas fa-trash"></i>
+                                Clear All Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="privacy-info">
+                    <h3>Privacy Information</h3>
+                    <ul>
+                        <li>Your chat history is stored locally on your device</li>
+                        <li>No personal data is sent to external servers without your consent</li>
+                        <li>Page content is only accessed when you explicitly request assistance</li>
+                        <li>You can disable data collection at any time</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Advanced Settings -->
+            <section class="content-section" id="advanced-section">
+                <div class="section-header">
+                    <h2>Advanced Settings</h2>
+                    <p>Advanced configuration options for power users</p>
+                </div>
+
+                <div class="settings-group">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>API Endpoint</h3>
+                            <p>Custom AI backend endpoint (for developers)</p>
+                        </div>
+                        <div class="setting-control">
+                            <input type="text" id="apiEndpoint" class="text-input" placeholder="https://your-api.com/chat">
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>API Key</h3>
+                            <p>Your API key for the AI service</p>
+                        </div>
+                        <div class="setting-control">
+                            <input type="password" id="apiKey" class="text-input" placeholder="Enter your API key">
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Debug Mode</h3>
+                            <p>Enable debug logging for troubleshooting</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="debugMode">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Export Settings</h3>
+                            <p>Export your current settings to a file</p>
+                        </div>
+                        <div class="setting-control">
+                            <button class="secondary-button" id="exportSettings">
+                                <i class="fas fa-download"></i>
+                                Export
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Import Settings</h3>
+                            <p>Import settings from a previously exported file</p>
+                        </div>
+                        <div class="setting-control">
+                            <button class="secondary-button" id="importSettings">
+                                <i class="fas fa-upload"></i>
+                                Import
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="options-footer">
+            <div class="footer-content">
+                <div class="footer-left">
+                    <button class="reset-button" id="resetSettings">
+                        <i class="fas fa-undo"></i>
+                        Reset to Defaults
+                    </button>
+                </div>
+                <div class="footer-right">
+                    <button class="save-button" id="saveSettings">
+                        <i class="fas fa-save"></i>
+                        Save Settings
+                    </button>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Hidden file input for import -->
+    <input type="file" id="importFile" accept=".json" style="display: none;">
+
+    <script src="options.js"></script>
+</body>
+</html> 
