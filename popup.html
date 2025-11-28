@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Research Assistant</title>
+    <link rel="stylesheet" href="popup.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="popup-container">
+        <!-- Header -->
+        <header class="popup-header">
+            <div class="logo-section">
+                <div class="logo">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h1>Deep Research</h1>
+            </div>
+            <button class="settings-btn" id="settingsBtn">
+                <i class="fas fa-cog"></i>
+            </button>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-tab="chat">
+                <i class="fas fa-comments"></i>
+                <span>Chat</span>
+            </button>
+            <button class="nav-tab" data-tab="research">
+                <i class="fas fa-search"></i>
+                <span>Research</span>
+            </button>
+            <button class="nav-tab" data-tab="screenshot">
+                <i class="fas fa-camera"></i>
+                <span>Screenshot</span>
+            </button>
+        </nav>
+
+        <!-- Content Sections -->
+        <main class="content-area">
+            <!-- Chat Tab -->
+            <div class="tab-content active" id="chat-tab">
+                <div class="chat-container">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="welcome-message">
+                            <div class="welcome-icon">
+                        <h3>Research Topics</h3>
+                        <div class="search-input-wrapper">
+                            <input type="text" id="researchInput" placeholder="Enter a topic to research...">
+                            <button class="research-btn" id="researchBtn">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="research-results" id="researchResults">
+                        <div class="empty-state">
+                            <i class="fas fa-search"></i>
+                            <p>Enter a topic above to start researching</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screenshot Tab -->
+            <div class="tab-content" id="screenshot-tab">
+                <div class="screenshot-container">
+                    <div class="screenshot-actions">
+                        <h3>Screen Analysis</h3>
+                        <div class="action-buttons">
+                            <button class="action-btn primary" id="captureBtn">
+                                <i class="fas fa-camera"></i>
+                                Capture Screenshot
+                            </button>
+                            <button class="action-btn secondary" id="analyzeBtn">
+                                <i class="fas fa-eye"></i>
+                                Analyze Page
+                            </button>
+                        </div>
+                    </div>
+                    <div class="screenshot-preview" id="screenshotPreview">
+                        <div class="preview-placeholder">
+                            <i class="fas fa-image"></i>
+                            <p>No screenshot captured yet</p>
+                        </div>
+                    </div>
+                    <div class="analysis-results" id="analysisResults">
+                        <!-- Analysis results will be displayed here -->
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="popup-footer">
+            <div class="status-indicator">
+                <span class="status-dot online"></span>
+                <span class="status-text">Connected</span>
+            </div>
+            <div class="footer-buttons">
+                <button class="open-widget-btn" id="openWidgetBtn">
+                    <i class="fas fa-external-link-alt"></i>
+                    Open Widget
+                </button>
+                <button class="test-btn" id="testBtn">
+                    <i class="fas fa-vial"></i>
+                    Test Extension
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html> 

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extension Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #45a049;
+        }
+        .result {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .error {
+            background: #ffebee;
+            border-color: #f44336;
+            color: #c62828;
+        }
+        .success {
+            background: #e8f5e8;
+            border-color: #4caf50;
+            color: #2e7d32;
+        }
+    </style>
+</head>
+<body>
+    <h1>Deep Research Assistant Extension Test</h1>
+    
+    <div class="test-section">
+        <h2>Backend Connectivity Test</h2>
+        <button class="test-button" onclick="testBackendHealth()">Test Backend Health</button>
+        <button class="test-button" onclick="testChatAPI()">Test Chat API</button>
+        <div id="backendResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Extension Communication Test</h2>
+        <p>Make sure the Deep Research Assistant extension is loaded and active.</p>
+        <button class="test-button" onclick="testExtensionCommunication()">Test Extension Communication</button>
+        <div id="extensionResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Widget Test</h2>
+        <p>Click the floating button or press Ctrl+Shift+D to test the chat widget.</p>
+        <button class="test-button" onclick="testWidget()">Test Widget Programmatically</button>
+        <div id="widgetResult" class="result"></div>
+    </div>
+
+    <script>
+        async function testBackendHealth() {
+            const resultDiv = document.getElementById('backendResult');
+            resultDiv.textContent = 'Testing backend health...';
+            
+            try {
+                const response = await fetch('http://localhost:3001/health');
+                const data = await response.json();
+                
+                if (data.ok) {
+                    resultDiv.textContent = '✅ Backend Health Check: SUCCESS\n' + JSON.stringify(data, null, 2);
+                    resultDiv.className = 'result success';
+                } else {
+                    resultDiv.textContent = '❌ Backend Health Check: FAILED\n' + JSON.stringify(data, null, 2);
+                    resultDiv.className = 'result error';
+                }
+            } catch (error) {
+                resultDiv.textContent = '❌ Backend Health Check: ERROR\n' + error.message;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        async function testChatAPI() {
+            const resultDiv = document.getElementById('backendResult');
+            resultDiv.textContent = 'Testing chat API...';
+            
+            try {
+                const response = await fetch('http://localhost:3001/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt: 'Hello! Please respond with a simple test message.',
+                        sessionId: 'test-session-' + Date.now()
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.reply) {
+                    resultDiv.textContent = '✅ Chat API Test: SUCCESS\n' + 
+                        'Response: ' + data.reply + '\n' +
+                        'Session ID: ' + data.sessionId;
+                    resultDiv.className = 'result success';
+                } else {
+                    resultDiv.textContent = '❌ Chat API Test: FAILED\n' + JSON.stringify(data, null, 2);
+                    resultDiv.className = 'result error';
+                }
+            } catch (error) {
+                resultDiv.textContent = '❌ Chat API Test: ERROR\n' + error.message;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        async function testExtensionCommunication() {
+            const resultDiv = document.getElementById('extensionResult');
+            resultDiv.textContent = 'Testing extension communication...';
+            
+            try {
+                // Check if extension is available
+                if (typeof chrome === 'undefined' || !chrome.runtime) {
+                    throw new Error('Chrome extension API not available');
+                }
+                
+                // Test sending message to background script
+                const response = await new Promise((resolve, reject) => {
+                    chrome.runtime.sendMessage(
+                        { action: 'sendToAI', data: { prompt: 'Test message from extension' } },
+                        (resp) => {
+                            if (chrome.runtime.lastError) {
+                                reject(new Error(chrome.runtime.lastError.message));
+                            } else {
+                                resolve(resp);
+                            }
+                        }
+                    );
+                });
+                
+                if (response && response.success && response.data && response.data.response) {
+                    resultDiv.textContent = '✅ Extension Communication: SUCCESS\n' + 
+                        'AI Response: ' + response.data.response + '\n' +
+                        'Endpoint: ' + (response.data.endpoint || 'Unknown');
+                    resultDiv.className = 'result success';
+                } else {
+                    resultDiv.textContent = '❌ Extension Communication: FAILED\n' + JSON.stringify(response, null, 2);
+                    resultDiv.className = 'result error';
+                }
+            } catch (error) {
+                resultDiv.textContent = '❌ Extension Communication: ERROR\n' + error.message;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        function testWidget() {
+            const resultDiv = document.getElementById('widgetResult');
+            resultDiv.textContent = 'Testing widget...';
+            
+            try {
+                // Try to trigger the widget programmatically
+                const event = new KeyboardEvent('keydown', {
+                    key: 'D',
+                    ctrlKey: true,
+                    shiftKey: true,
+                    bubbles: true
+                });
+                
+                document.dispatchEvent(event);
+                
+                resultDiv.textContent = '✅ Widget Test: Keyboard shortcut triggered\n' + 
+                    'Check if the chat widget appears on the page.';
+                resultDiv.className = 'result success';
+            } catch (error) {
+                resultDiv.textContent = '❌ Widget Test: ERROR\n' + error.message;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        // Auto-run backend tests on page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                testBackendHealth();
+                setTimeout(testChatAPI, 1000);
+            }, 500);
+        });
+    </script>
+</body>
+</html>
