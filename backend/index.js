@@ -49,7 +49,7 @@ app.get('/health', async (req, res) => {
 	if (genAI) {
 		health.ai.gemini = {
 			available: true,
-			model: 'gemini-pro',
+			model: 'gemini-1.5-flash',
 			priority: 1
 		};
 	}
@@ -145,7 +145,7 @@ app.post('/chat', async (req, res) => {
 				console.log('🤖 Using Google Gemini API...');
 
 				const model = genAI.getGenerativeModel({
-					model: "gemini-pro",
+					model: "gemini-1.5-flash",
 					generationConfig: {
 						temperature: temperature,
 						maxOutputTokens: maxTokens,
@@ -182,7 +182,7 @@ app.post('/chat', async (req, res) => {
 					sessionId,
 					reply,
 					source: 'gemini',
-					model: 'gemini-pro'
+					model: 'gemini-1.5-flash'
 				});
 
 			} catch (geminiError) {
