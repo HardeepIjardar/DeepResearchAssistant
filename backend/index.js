@@ -1,16 +1,25 @@
 const express = require('express');
 const cors = require('cors');
-const axios = require('axios');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://127.0.0.1:11434';
-const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'llama2:7b';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
+
+// Initialize Google Generative AI
+let genAI = null;
+let model = null;
+
+if (GEMINI_API_KEY) {
+	genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+	model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
+}
 
 // In-memory session histories (per user)
-const sessionHistories = new Map(); // Map<sessionId, [{role, content}]>
+const sessionHistories = new Map(); // Map<sessionId, [{role, parts: [{text}]}]>
 
 app.use(cors({ origin: '*', methods: ['GET', 'POST', 'OPTIONS'], allowedHeaders: ['Content-Type', 'Authorization'] }));
 app.use(express.json({ limit: '1mb' }));
@@ -27,33 +36,47 @@ app.options('*', (req, res) => {
 app.set('trust proxy', 1);
 
 app.get('/', (req, res) => {
-	res.json({ status: 'ok', name: 'DeepResearchAssistant backend', uptime: process.uptime() });
+	res.json({ status: 'ok', name: 'DeepResearchAssistant backend (Google Gemini)', uptime: process.uptime() });
 });
 
 app.get('/health', async (req, res) => {
+	if (!GEMINI_API_KEY) {
+		return res.json({
+			ok: true,
+			mode: 'fallback',
+			geminiAvailable: false,
+			message: 'No Gemini API key configured. Using fallback responses. Add GEMINI_API_KEY to .env file.',
+			note: 'Extension will still work with pre-configured responses.'
+		});
+	}
+
 	try {
-		// Try to connect to Ollama first
-		const r = await axios.get(`${OLLAMA_HOST}/api/tags`, { timeout: 3000 });
+		// Try a simple test with Gemini
+		const testModel = genAI.getGenerativeModel({ model: GEMINI_MODEL });
+		const result = await testModel.generateContent('Say "OK" if you can hear me.');
+		const response = await result.response;
+		const text = response.text();
+		
 		res.json({
 			ok: true,
-			mode: 'ollama',
-			model: OLLAMA_MODEL,
-			ollamaAvailable: true,
-			availableModels: r.data?.models?.map(m => m.name) || []
+			mode: 'gemini',
+			model: GEMINI_MODEL,
+			geminiAvailable: true,
+			testResponse: text.substring(0, 50)
 		});
 	} catch (e) {
-		// If Ollama is not available, return fallback mode
 		res.json({
 			ok: true,
 			mode: 'fallback',
-			ollamaAvailable: false,
-			message: 'Ollama not available, using fallback responses. Install Ollama and pull a model to enable AI features.',
+			geminiAvailable: false,
+			error: e.message,
+			message: 'Gemini API error. Using fallback responses. Check your API key.',
 			note: 'Extension will still work with pre-configured responses.'
 		});
 	}
 });
 
-// Fallback AI responses for when Ollama is not available
+// Fallback AI responses for when Gemini is not available
 const fallbackResponses = {
 	greeting: [
 		"Hello! I'm your AI research assistant. How can I help you today?",
@@ -89,9 +112,28 @@ function getFallbackResponse(prompt) {
 		`Would you like me to elaborate on any specific aspect of this topic?`;
 }
 
+// Convert messages from OpenAI format to Gemini format
+function convertToGeminiHistory(messages) {
+	return messages.map(msg => {
+		const role = msg.role === 'assistant' ? 'model' : 'user';
+		return {
+			role: role,
+			parts: [{ text: msg.content }]
+		};
+	});
+}
+
+// Convert Gemini format back to standard format
+function convertFromGeminiHistory(geminiHistory) {
+	return geminiHistory.map(msg => ({
+		role: msg.role === 'model' ? 'assistant' : 'user',
+		content: msg.parts[0].text
+	}));
+}
+
 app.post('/chat', async (req, res) => {
 	try {
-		let { prompt, sessionId, messages, temperature = 0.7, maxTokens = 256 } = req.body || {};
+		let { prompt, sessionId, messages, temperature = 0.7, maxTokens = 2048 } = req.body || {};
 
 		// Validate input
 		if (!prompt && !messages) {
@@ -104,46 +146,84 @@ app.post('/chat', async (req, res) => {
 
 		if (!sessionId) sessionId = uuidv4();
 
-		// Try Ollama first, fallback to mock responses
-		try {
-			const history = sessionHistories.get(sessionId) || [];
-			const userTurn = prompt ? [{ role: 'user', content: prompt }] : [];
-			const fullMessages = [...history.slice(-8), ...(messages || userTurn)];
-
-			const body = {
-				model: OLLAMA_MODEL,
-				messages: fullMessages,
-				stream: false,
-				options: { temperature, num_predict: maxTokens }
-			};
-
-			const r = await axios.post(`${OLLAMA_HOST}/api/chat`, body, {
-				headers: { 'Content-Type': 'application/json' },
-				timeout: 30000 // 30 second timeout for AI response
-			});
-
-			const reply = r.data?.message?.content || r.data?.response || '';
-
-			if (!reply) {
-				throw new Error('Empty response from Ollama');
-			}
-
-			const newHistory = [...fullMessages, { role: 'assistant', content: reply }];
+		// Try Gemini first, fallback to mock responses
+		if (!GEMINI_API_KEY || !model) {
+			// Fallback to mock responses
+			const reply = getFallbackResponse(prompt || messages[messages.length - 1].content);
+			const newHistory = [{ role: 'user', content: prompt }, { role: 'assistant', content: reply }];
 			sessionHistories.set(sessionId, newHistory);
 
-			res.json({ sessionId, reply, source: 'ollama', model: OLLAMA_MODEL });
-		} catch (ollamaError) {
+			return res.json({
+				sessionId,
+				reply,
+				source: 'fallback',
+				note: 'No Gemini API key configured. Add GEMINI_API_KEY to .env file for full AI capabilities.'
+			});
+		}
+
+		try {
+			// Get or create session history
+			const history = sessionHistories.get(sessionId) || [];
+			
+			// Prepare messages
+			let fullMessages;
+			if (messages) {
+				fullMessages = messages;
+			} else {
+				fullMessages = [...history, { role: 'user', content: prompt }];
+			}
+
+			// Keep last 10 messages to manage context window
+			const recentMessages = fullMessages.slice(-10);
+
+			// Convert to Gemini format
+			const geminiHistory = convertToGeminiHistory(recentMessages.slice(0, -1));
+			const userMessage = recentMessages[recentMessages.length - 1].content;
+
+			// Start chat with history
+			const chat = model.startChat({
+				history: geminiHistory,
+				generationConfig: {
+					temperature: temperature,
+					maxOutputTokens: maxTokens,
+				},
+			});
+
+			// Send message
+			const result = await chat.sendMessage(userMessage);
+			const response = await result.response;
+			const reply = response.text();
+
+			if (!reply) {
+				throw new Error('Empty response from Gemini');
+			}
+
+			// Update history
+			const newHistory = [...recentMessages, { role: 'assistant', content: reply }];
+			sessionHistories.set(sessionId, newHistory);
+
+			res.json({ 
+				sessionId, 
+				reply, 
+				source: 'gemini', 
+				model: GEMINI_MODEL 
+			});
+		} catch (geminiError) {
 			// Fallback to mock responses
-			console.log('Ollama error:', ollamaError.message, '- using fallback responses');
-			const reply = getFallbackResponse(prompt);
-			const newHistory = [{ role: 'user', content: prompt }, { role: 'assistant', content: reply }];
+			console.log('Gemini error:', geminiError.message, '- using fallback responses');
+			const reply = getFallbackResponse(prompt || messages[messages.length - 1].content);
+			const newHistory = [
+				{ role: 'user', content: prompt || messages[messages.length - 1].content }, 
+				{ role: 'assistant', content: reply }
+			];
 			sessionHistories.set(sessionId, newHistory);
 
 			res.json({
 				sessionId,
 				reply,
 				source: 'fallback',
-				note: 'AI backend unavailable. Install Ollama for full AI capabilities.'
+				error: geminiError.message,
+				note: 'Gemini API error. Using fallback responses. Check your API key and quota.'
 			});
 		}
 	} catch (e) {
@@ -160,8 +240,9 @@ app.listen(Number(PORT), '0.0.0.0', () => {
 	const host = process.env.RENDER ? '0.0.0.0' : '127.0.0.1';
 	console.log(`\n🚀 Deep Research Assistant Backend Server`);
 	console.log(`📡 Listening on http://${host}:${PORT}`);
-	console.log(`🤖 AI Model: ${OLLAMA_MODEL}`);
-	console.log(`🔗 Ollama Host: ${OLLAMA_HOST}`);
+	console.log(`🤖 AI Provider: Google Gemini`);
+	console.log(`🎯 Model: ${GEMINI_MODEL}`);
+	console.log(`${GEMINI_API_KEY ? '✅' : '❌'} API Key: ${GEMINI_API_KEY ? 'Configured' : 'Missing - using fallback responses'}`);
 	console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
 	console.log(`\nEndpoints:`);
 	console.log(`  GET  /health  - Health check`);
