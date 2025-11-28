@@ -1,15 +1,28 @@
+# Dependencies
 node_modules/
-*.log
+package-lock.json
+backend/node_modules/
+backend/package-lock.json
+
+# Environment variables
 .env
-.DS_Store
-*.swp
-*.swo
-*~
+backend/.env
+
+# IDE
 .vscode/
 .idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Build
 dist/
 build/
-*.zip
-temp/
-tmp/
-.cache/
+
+# Misc
+.gemini/
