@@ -1,0 +1,37 @@
+--- a/content.js
++++ b/content.js
+@@ -748,26 +748,20 @@ class DeepResearchContent {
+ 
+ 	async getAIResponse(message) {
+ 		return new Promise((resolve, reject) => {
+-			// Build prompt with LOCKED page context
++			// Build prompt - keep it simple and clean
+ 			let prompt = message;
+ 
+ 			// Check if this is the first message in the session
+ 			const isFirstMessage = this.chatHistory.length === 0 ||
+ 				this.chatHistory.filter(m => m.sender === 'user').length === 0;
+ 
+-			if (isFirstMessage && this.pageContext) {
+-				// FIRST MESSAGE: Establish context with page content
+-				console.log('🎯 First message - establishing page context for AI');
+-				prompt = `IMPORTANT CONTEXT - The user is viewing a specific web page. You must answer based ONLY on this page context:
+-
+-${this.pageContext.semanticContext}
+-
+-CRITICAL INSTRUCTION: All your responses in this conversation must be relevant to the above page content. If the user asks about something unrelated to this page, politely redirect them to ask about the page topic.
+-
+-User's first question: ${message}`;
+-			} else if (this.detectedTopic && !this.pageContext) {
+-				// Fallback to topic if no page context (shouldn't happen normally)
+-				prompt = `Context: The user is researching "${this.detectedTopic}". Only answer questions related to this topic. If the question is unrelated, politely redirect to the topic.\n\nQuestion: ${message}`;
++			// Add lightweight context on first message only
++			if (isFirstMessage) {
++				if (this.detectedTopic) {
++					prompt = `The user is researching "${this.detectedTopic}". ${message}`;
++				} else if (this.pageContext && this.pageContext.title) {
++					prompt = `The user is viewing the page "${this.pageContext.title}". ${message}`;
++				}
+ 			}
+ 
+ 			console.log('💬 Sending to AI:', isFirstMessage ? 'WITH page context' : 'continuing conversation');

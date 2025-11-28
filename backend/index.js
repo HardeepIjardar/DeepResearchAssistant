@@ -2,10 +2,12 @@ const express = require('express');
 const cors = require('cors');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { v4: uuidv4 } = require('uuid');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+<<<<<<< HEAD
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
 
@@ -17,6 +19,16 @@ if (GEMINI_API_KEY) {
 	genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 	model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
 }
+=======
+
+// Initialize Google Gemini AI
+const genAI = process.env.GEMINI_API_KEY ?
+	new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null;
+
+// Ollama configuration (optional fallback for local development)
+const OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://127.0.0.1:11434';
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'llama2:7b';
+>>>>>>> 40cfc20ecff4d7e30e7bfa5b8315229923179241
 
 // In-memory session histories (per user)
 const sessionHistories = new Map(); // Map<sessionId, [{role, parts: [{text}]}]>
@@ -40,6 +52,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/health', async (req, res) => {
+<<<<<<< HEAD
 	if (!GEMINI_API_KEY) {
 		return res.json({
 			ok: true,
@@ -73,10 +86,58 @@ app.get('/health', async (req, res) => {
 			message: 'Gemini API error. Using fallback responses. Check your API key.',
 			note: 'Extension will still work with pre-configured responses.'
 		});
+=======
+	const health = {
+		ok: true,
+		timestamp: new Date().toISOString(),
+		uptime: process.uptime(),
+		ai: {}
+	};
+
+	// Check Gemini availability
+	if (genAI) {
+		health.ai.gemini = {
+			available: true,
+			model: 'gemini-1.5-flash-latest',
+			priority: 1
+		};
+>>>>>>> 40cfc20ecff4d7e30e7bfa5b8315229923179241
 	}
+
+	// Check Ollama availability (optional)
+	try {
+		const r = await axios.get(`${OLLAMA_HOST}/api/tags`, { timeout: 2000 });
+		health.ai.ollama = {
+			available: true,
+			model: OLLAMA_MODEL,
+			priority: 2,
+			models: r.data?.models?.map(m => m.name) || []
+		};
+	} catch (e) {
+		health.ai.ollama = {
+			available: false,
+			message: 'Ollama not running (optional)'
+		};
+	}
+
+	// Determine active AI
+	if (genAI) {
+		health.ai.active = 'gemini';
+	} else if (health.ai.ollama?.available) {
+		health.ai.active = 'ollama';
+	} else {
+		health.ai.active = 'fallback';
+		health.ai.warning = 'No AI backend configured. Set GEMINI_API_KEY for intelligent responses.';
+	}
+
+	res.json(health);
 });
 
+<<<<<<< HEAD
 // Fallback AI responses for when Gemini is not available
+=======
+// Fallback AI responses for when no AI is available
+>>>>>>> 40cfc20ecff4d7e30e7bfa5b8315229923179241
 const fallbackResponses = {
 	greeting: [
 		"Hello! I'm your AI research assistant. How can I help you today?",
@@ -133,7 +194,11 @@ function convertFromGeminiHistory(geminiHistory) {
 
 app.post('/chat', async (req, res) => {
 	try {
+<<<<<<< HEAD
 		let { prompt, sessionId, messages, temperature = 0.7, maxTokens = 2048 } = req.body || {};
+=======
+		let { prompt, sessionId, messages, temperature = 0.7, maxTokens = 512 } = req.body || {};
+>>>>>>> 40cfc20ecff4d7e30e7bfa5b8315229923179241
 
 		// Validate input
 		if (!prompt && !messages) {
@@ -146,6 +211,7 @@ app.post('/chat', async (req, res) => {
 
 		if (!sessionId) sessionId = uuidv4();
 
+<<<<<<< HEAD
 		// Try Gemini first, fallback to mock responses
 		if (!GEMINI_API_KEY || !model) {
 			// Fallback to mock responses
@@ -224,10 +290,124 @@ app.post('/chat', async (req, res) => {
 				source: 'fallback',
 				error: geminiError.message,
 				note: 'Gemini API error. Using fallback responses. Check your API key and quota.'
-			});
+=======
+		// Get or create session history
+		const history = sessionHistories.get(sessionId) || [];
+
+		// AI CASCADE: Try Gemini first, then Ollama, then fallback
+
+		// 1. TRY GEMINI (PRIMARY - Production ready)
+		if (genAI) {
+			try {
+				console.log('🤖 Using Google Gemini API...');
+
+				const model = genAI.getGenerativeModel({
+					model: "gemini-1.5-flash-latest",
+					generationConfig: {
+						temperature: temperature,
+						maxOutputTokens: maxTokens,
+					}
+				});
+
+				// Build conversation history for Gemini
+				let fullPrompt = prompt;
+				if (history.length > 0) {
+					// Include recent context (last 6 messages)
+					const recentHistory = history.slice(-6);
+					const contextPrompt = recentHistory
+						.map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
+						.join('\n');
+					fullPrompt = `${contextPrompt}\n\nUser: ${prompt}`;
+				}
+
+				const result = await model.generateContent(fullPrompt);
+				const reply = result.response.text();
+
+				if (!reply || reply.trim().length === 0) {
+					throw new Error('Empty response from Gemini');
+				}
+
+				// Update session history
+				const newHistory = [...history,
+				{ role: 'user', content: prompt },
+				{ role: 'assistant', content: reply }
+				];
+				sessionHistories.set(sessionId, newHistory.slice(-16)); // Keep last 16 messages
+
+				console.log('✅ Gemini response generated');
+				return res.json({
+					sessionId,
+					reply,
+					source: 'gemini',
+					model: 'gemini-1.5-flash-latest'
+				});
+
+			} catch (geminiError) {
+				console.error('❌ Gemini error:', geminiError.message);
+				// Continue to next AI provider
+			}
 		}
+
+		// 2. TRY OLLAMA (FALLBACK - Local development)
+		try {
+			console.log('🦙 Trying Ollama...');
+
+			const userTurn = [{ role: 'user', content: prompt }];
+			const fullMessages = [...history.slice(-8), ...userTurn];
+
+			const body = {
+				model: OLLAMA_MODEL,
+				messages: fullMessages,
+				stream: false,
+				options: { temperature, num_predict: maxTokens }
+			};
+
+			const r = await axios.post(`${OLLAMA_HOST}/api/chat`, body, {
+				headers: { 'Content-Type': 'application/json' },
+				timeout: 5000 // Quick timeout for Ollama
+			});
+
+			const reply = r.data?.message?.content || r.data?.response || '';
+
+			if (!reply || reply.trim().length === 0) {
+				throw new Error('Empty response from Ollama');
+			}
+
+			const newHistory = [...fullMessages, { role: 'assistant', content: reply }];
+			sessionHistories.set(sessionId, newHistory.slice(-16));
+
+			console.log('✅ Ollama response generated');
+			return res.json({
+				sessionId,
+				reply,
+				source: 'ollama',
+				model: OLLAMA_MODEL
+>>>>>>> 40cfc20ecff4d7e30e7bfa5b8315229923179241
+			});
+
+		} catch (ollamaError) {
+			console.log('❌ Ollama unavailable:', ollamaError.message);
+			// Continue to fallback
+		}
+
+		// 3. FALLBACK (LAST RESORT)
+		console.log('📝 Using fallback responses');
+		const reply = getFallbackResponse(prompt);
+		const newHistory = [
+			{ role: 'user', content: prompt },
+			{ role: 'assistant', content: reply }
+		];
+		sessionHistories.set(sessionId, newHistory);
+
+		return res.json({
+			sessionId,
+			reply,
+			source: 'fallback',
+			note: 'No AI backend available. Set GEMINI_API_KEY environment variable for intelligent responses.'
+		});
+
 	} catch (e) {
-		console.error('Chat endpoint error:', e);
+		console.error('💥 Chat endpoint error:', e);
 		res.status(500).json({
 			error: 'Internal server error',
 			message: e.message || 'Chat request failed. Please try again.',
@@ -240,11 +420,21 @@ app.listen(Number(PORT), '0.0.0.0', () => {
 	const host = process.env.RENDER ? '0.0.0.0' : '127.0.0.1';
 	console.log(`\n🚀 Deep Research Assistant Backend Server`);
 	console.log(`📡 Listening on http://${host}:${PORT}`);
+<<<<<<< HEAD
 	console.log(`🤖 AI Provider: Google Gemini`);
 	console.log(`🎯 Model: ${GEMINI_MODEL}`);
 	console.log(`${GEMINI_API_KEY ? '✅' : '❌'} API Key: ${GEMINI_API_KEY ? 'Configured' : 'Missing - using fallback responses'}`);
+=======
+	console.log(`🤖 Primary AI: ${genAI ? 'Google Gemini ✅' : 'Not configured ❌'}`);
+	console.log(`🦙 Ollama: ${OLLAMA_HOST}`);
+>>>>>>> 40cfc20ecff4d7e30e7bfa5b8315229923179241
 	console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
 	console.log(`\nEndpoints:`);
 	console.log(`  GET  /health  - Health check`);
 	console.log(`  POST /chat    - Chat with AI\n`);
+
+	if (!genAI) {
+		console.log(`⚠️  WARNING: GEMINI_API_KEY not set. Using fallback responses.`);
+		console.log(`   Set GEMINI_API_KEY in .env for intelligent AI responses.\n`);
+	}
 });
